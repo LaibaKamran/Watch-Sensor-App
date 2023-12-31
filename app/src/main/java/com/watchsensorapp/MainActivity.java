@@ -12,6 +12,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -46,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
         StringBuilder selectedSensors = new StringBuilder("Selected Sensors:\n");
 
         // Iterate through checkboxes to find selected sensors
+        ArrayList<Integer> selectedSensorTypes = new ArrayList<>();
         for (int i = 0; i < sensorsContainer.getChildCount(); i++) {
             View childView = sensorsContainer.getChildAt(i);
 
@@ -53,19 +55,15 @@ public class MainActivity extends AppCompatActivity {
                 CheckBox checkBox = (CheckBox) childView;
 
                 if (checkBox.isChecked()) {
-                    // Append selected sensor details to the StringBuilder
                     selectedSensors.append(checkBox.getText()).append("\n");
+                    selectedSensorTypes.add((Integer) checkBox.getTag());
                 }
             }
         }
 
-        // Display selected sensors in TextView
-        TextView textView = findViewById(R.id.text);
-        textView.setText(selectedSensors.toString());
-
-        // Start the SensorDisplayActivity and pass selected sensor values
+        // Start SensorDisplayActivity and pass the selected sensor types
         Intent intent = new Intent(this, SensorDisplayActivity.class);
-        intent.putExtra("selectedSensors", selectedSensors.toString());
+        intent.putIntegerArrayListExtra("selectedSensorTypes", selectedSensorTypes);
         startActivity(intent);
     }
 }
