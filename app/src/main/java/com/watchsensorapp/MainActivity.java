@@ -48,8 +48,10 @@ public class MainActivity extends AppCompatActivity {
         CheckBox checkBox = new CheckBox(this);
         checkBox.setText(sensorName);
         checkBox.setTag(sensorType);
+        checkBox.setChecked(true); // Set the checkbox to checked by default
         sensorsContainer.addView(checkBox);
     }
+
 
     private void showServerIpDialog() {
         // Set up the input field for the IP address
