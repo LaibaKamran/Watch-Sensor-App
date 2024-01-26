@@ -1,4 +1,3 @@
-// com.watchsensorapp.SensorDisplayActivity
 package com.watchsensorapp;
 
 import android.content.Context;
@@ -12,6 +11,11 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,6 +27,8 @@ public class SensorDisplayActivity extends AppCompatActivity implements SensorEv
     private LinearLayout sensorsContainer;
     private Map<Integer, TextView> sensorTextViewMap = new HashMap<>();
     private Map<Integer, List<Float>> sensorDataMap = new HashMap<>();
+
+    // ...
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,26 +61,23 @@ public class SensorDisplayActivity extends AppCompatActivity implements SensorEv
         }
     }
 
+// ...
+
     private void createSensorLayout(String sensorName, int sensorType) {
-        // Create a layout for each sensor containing its name and data
         LinearLayout sensorLayout = new LinearLayout(this);
         sensorLayout.setOrientation(LinearLayout.VERTICAL);
 
-        // Create TextView for sensor name
         TextView sensorNameTextView = createSensorTextView(sensorName);
         sensorLayout.addView(sensorNameTextView);
 
-        // Create TextView for sensor data
         TextView sensorDataTextView = createSensorTextView("");
         sensorLayout.addView(sensorDataTextView);
 
         sensorsContainer.addView(sensorLayout);
 
-        // Update sensor maps
         sensorTextViewMap.put(sensorType, sensorDataTextView);
         sensorDataMap.put(sensorType, new ArrayList<>());
     }
-
 
     private TextView createSensorTextView(String sensorName) {
         TextView textView = new TextView(this);
@@ -90,7 +93,6 @@ public class SensorDisplayActivity extends AppCompatActivity implements SensorEv
         if (sensor != null) {
             sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
         } else {
-            // Handle case where sensor is not available
             setNoSensorAvailableText(sensorType);
         }
     }
@@ -105,33 +107,66 @@ public class SensorDisplayActivity extends AppCompatActivity implements SensorEv
         sensorTextView.setText("No sensor available");
     }
 
+
     @Override
     public void onSensorChanged(SensorEvent event) {
         int sensorType = event.sensor.getType();
         List<Float> sensorValues = sensorDataMap.get(sensorType);
 
-        // Ensure that the list has at least three elements
         if (sensorValues.size() < 3) {
-            // Initialize the list with zeros if not already done
             for (int i = 0; i < 3; i++) {
                 sensorValues.add(0.0f);
             }
         }
 
-        // Update the sensor values for each dimension
         for (int i = 0; i < Math.min(3, event.values.length); i++) {
             sensorValues.set(i, event.values[i]);
         }
 
-        // Display the sensor data for all three dimensions
-        String sensorData = "X: " + sensorValues.get(0) + "\n"
-                + "Y: " + sensorValues.get(1) + "\n"
-                + "Z: " + sensorValues.get(2);
+        String sensorData = sensorType + "\n" +
+                "X:" + sensorValues.get(0) + "\n" +
+                "Y:" + sensorValues.get(1) + "\n" +
+                "Z:" + sensorValues.get(2);
 
-        // Update the TextView for the sensor type
         TextView sensorTextView = sensorTextViewMap.get(sensorType);
         sensorTextView.setText(sensorData);
+
+        // Send data to the server
+        sendDataToServer(sensorData);
     }
+
+    private void sendDataToServer(final String message) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    System.out.println("Sending message to server: " + message);
+                    Socket socket = new Socket("192.168.148.7", 12345);
+
+                    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+
+                    // Send the message to the server
+                    writer.write(message);
+                    writer.newLine();
+                    writer.flush();
+
+                    // Close the socket
+                    socket.close();
+                    System.out.println("Message sent successfully");
+                } catch (UnknownHostException e) {
+                    e.printStackTrace();
+                    System.out.println("UnknownHostException: " + e.getMessage());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    System.out.println("IOException: " + e.getMessage());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    System.out.println("Exception: " + e.getMessage());
+                }
+            }
+        }).start();
+    }
+
 
 
 
@@ -143,7 +178,6 @@ public class SensorDisplayActivity extends AppCompatActivity implements SensorEv
     @Override
     protected void onResume() {
         super.onResume();
-        // Resume sensor updates when the activity is resumed
         for (int sensorType : sensorTextViewMap.keySet()) {
             Sensor sensor = sensorManager.getDefaultSensor(sensorType);
             if (sensor != null) {
@@ -155,7 +189,6 @@ public class SensorDisplayActivity extends AppCompatActivity implements SensorEv
     @Override
     protected void onPause() {
         super.onPause();
-        // Unregister sensor updates when the activity is paused
         sensorManager.unregisterListener(this);
     }
 }
