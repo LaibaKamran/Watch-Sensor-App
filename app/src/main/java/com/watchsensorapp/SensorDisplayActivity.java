@@ -15,7 +15,6 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -27,8 +26,7 @@ public class SensorDisplayActivity extends AppCompatActivity implements SensorEv
     private LinearLayout sensorsContainer;
     private Map<Integer, TextView> sensorTextViewMap = new HashMap<>();
     private Map<Integer, List<Float>> sensorDataMap = new HashMap<>();
-
-    // ...
+    private String serverIP;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +37,9 @@ public class SensorDisplayActivity extends AppCompatActivity implements SensorEv
 
         // Get the sensor manager
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+
+        // Retrieve the server IP address from the intent
+        serverIP = getIntent().getStringExtra("serverIP");
 
         // Retrieve the list of selected sensors from the intent
         ArrayList<Integer> selectedSensorTypes = getIntent().getIntegerArrayListExtra("selectedSensorTypes");
@@ -60,8 +61,6 @@ public class SensorDisplayActivity extends AppCompatActivity implements SensorEv
             setNoSelectedSensorsText();
         }
     }
-
-// ...
 
     private void createSensorLayout(String sensorName, int sensorType) {
         LinearLayout sensorLayout = new LinearLayout(this);
@@ -107,7 +106,6 @@ public class SensorDisplayActivity extends AppCompatActivity implements SensorEv
         sensorTextView.setText("No sensor available");
     }
 
-
     @Override
     public void onSensorChanged(SensorEvent event) {
         int sensorType = event.sensor.getType();
@@ -141,7 +139,7 @@ public class SensorDisplayActivity extends AppCompatActivity implements SensorEv
             public void run() {
                 try {
                     System.out.println("Sending message to server: " + message);
-                    Socket socket = new Socket("192.168.148.7", 12345);
+                    Socket socket = new Socket(serverIP, 12345);
 
                     BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 
@@ -153,9 +151,6 @@ public class SensorDisplayActivity extends AppCompatActivity implements SensorEv
                     // Close the socket
                     socket.close();
                     System.out.println("Message sent successfully");
-                } catch (UnknownHostException e) {
-                    e.printStackTrace();
-                    System.out.println("UnknownHostException: " + e.getMessage());
                 } catch (IOException e) {
                     e.printStackTrace();
                     System.out.println("IOException: " + e.getMessage());
@@ -166,9 +161,6 @@ public class SensorDisplayActivity extends AppCompatActivity implements SensorEv
             }
         }).start();
     }
-
-
-
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {

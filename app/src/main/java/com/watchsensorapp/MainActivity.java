@@ -47,10 +47,31 @@ public class MainActivity extends AppCompatActivity {
         checkBox.setChecked(true);
         sensorsContainer.addView(checkBox);
     }
-    private void showServerIpDialog() {
-        serverIP = "192.168.148.7"; // Hardcode the server IP
-    }
 
+    private void showServerIpDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Enter Server IP Address");
+
+        final EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        builder.setView(input);
+
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                serverIP = input.getText().toString();
+            }
+        });
+
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
+    }
 
     public void showSelectedSensors(View view) {
         StringBuilder selectedSensors = new StringBuilder("Selected Sensors:\n");

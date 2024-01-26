@@ -42,6 +42,12 @@
             android:theme="@style/SensorDisplayTheme">
         </activity>
 
+        <!-- Add SendDataToServerActivity -->
+        <activity
+            android:name=".SendDataToServerActivity"
+            android:label="Send Data To Server">
+        </activity>
+
     </application>
 
 </manifest>
